@@ -1,33 +1,63 @@
-const donors = [
-    "Arun, O+, Karur",
-    "Siva, O+, Karur",
-    "Ravi, A+, Trichy",
-    "Kumar, B+, Chennai"
-];
+// 🔥 Load donors from backend
+async function loadDonors() {
+    const res = await fetch("http://127.0.0.1:8000/donors");
+    const data = await res.json();
 
-// 🔥 Load dashboard stats
-function loadDashboard() {
+    const list = document.getElementById("donorList");
+    list.innerHTML = "";
+
     let o = 0, a = 0, b = 0;
 
-    donors.forEach(d => {
-        if (d.includes("O+")) o++;
-        if (d.includes("A+")) a++;
-        if (d.includes("B+")) b++;
+    data.donors.forEach(d => {
+        const li = document.createElement("li");
+
+        const name = d.name || "Unknown";
+        const blood = d.blood || "";
+        const location = d.location || "";
+
+        li.textContent = `${name}, ${blood}, ${location}`;
+        list.appendChild(li);
+
+        if (blood === "O+") o++;
+        if (blood === "A+") a++;
+        if (blood === "B+") b++;
     });
 
     document.getElementById("oCount").innerText = o;
     document.getElementById("aCount").innerText = a;
     document.getElementById("bCount").innerText = b;
-    document.getElementById("totalCount").innerText = donors.length;
-
-    // Fill donor list
-    const list = document.getElementById("donor-list");
-    donors.forEach(d => {
-        list.innerHTML += `<li>${d}</li>`;
-    });
+    document.getElementById("totalCount").innerText = data.donors.length;
 }
 
-// 🔥 Chat function
+
+// 🔥 Become donor
+async function becomeDonor() {
+    const name = prompt("Enter your name:");
+    const blood = prompt("Enter blood group:");
+    const location = prompt("Enter location:");
+
+    if (!name || !blood || !location) {
+        alert("All fields required!");
+        return;
+    }
+
+    await fetch("http://127.0.0.1:8000/add-donor", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            name: String(name),
+            blood: String(blood),
+            location: String(location)   // ✅ FORCE STRING
+        })
+    });
+
+    alert("You are now a donor!");
+    loadDonors();
+}
+
+// 🔥 Chat
 async function sendMessage() {
     const input = document.getElementById("user-input");
     const message = input.value.trim();
@@ -37,31 +67,20 @@ async function sendMessage() {
     const chatBox = document.getElementById("chat-box");
 
     chatBox.innerHTML += `<div><b>You:</b> ${message}</div>`;
-
     input.value = "";
 
-    const res = await fetch(`http://127.0.0.1:8000/chat?query=${message}`);
-    const data = await res.json();
+    try {
+        const res = await fetch(`http://127.0.0.1:8000/chat?query=${message}`);
+        const data = await res.json();
 
-    chatBox.innerHTML += `<div><b>AI:</b><br>${data.results.join("<br>")}</div>`;
+        chatBox.innerHTML += `<div><b>AI:</b><br>${data.results.join("<br>")}</div>`;
+    } catch {
+        chatBox.innerHTML += `<div><b>AI:</b> Server error</div>`;
+    }
 
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// Load on start
-loadDashboard();
 
-
-async function addDonor() {
-    const name = prompt("Enter name");
-    const blood = prompt("Enter blood group");
-    const location = prompt("Enter location");
-
-    await fetch("http://127.0.0.1:8000/add-donor", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({name, blood, location})
-    });
-
-    alert("You are now a donor!");
-}
+// 🔥 Load on start
+loadDonors();

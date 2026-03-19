@@ -1,19 +1,23 @@
 from fastapi import FastAPI
-from backend.routes import auth, donor
+from backend.routes import donor, chat
 from fastapi.middleware.cors import CORSMiddleware
-import sys
-import os  
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 app = FastAPI()
 
+# ✅ CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
+# ✅ Home route
+@app.get("/")
+def home():
+    return {"message": "AI Blood Assistant API running 🚀"}
+
+# ✅ Include routes
 app.include_router(donor.router)
+app.include_router(chat.router)
