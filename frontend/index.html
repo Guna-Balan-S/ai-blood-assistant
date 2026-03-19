@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Blood Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>🩸 AI Blood Dashboard</h1>
+
+<div class="stats">
+    <div class="card">O+ Donors: <span id="oCount">0</span></div>
+    <div class="card">A+ Donors: <span id="aCount">0</span></div>
+    <div class="card">B+ Donors: <span id="bCount">0</span></div>
+    <div class="card">Total: <span id="totalCount">0</span></div>
+</div>
+
+<div class="main">
+
+    <!-- Chat -->
+    <div class="chat">
+    <h3>💬 AI Chat</h3>
+
+    <!-- ✅ ADD HERE -->
+    <button onclick="addDonor()">🩸 Become Donor</button>
+
+    <div id="chat-box"></div>
+
+    <div class="input-box">
+        <input type="text" id="user-input" placeholder="Ask for blood...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+    <!-- Donor List -->
+    <div class="donors">
+        <h3>📋 Donors</h3>
+        <ul id="donor-list"></ul>
+    </div>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
