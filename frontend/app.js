@@ -1,34 +1,41 @@
+// 🌐 Backend URL (IMPORTANT)
+const BASE_URL = "https://ai-blood-assistant.onrender.com";
+
 // 🔥 Load donors from backend
 async function loadDonors() {
-    const res = await fetch("http://127.0.0.1:8000/api/donors");
-    const data = await res.json();
+    try {
+        const res = await fetch(`${BASE_URL}/api/donors`);
+        const data = await res.json();
 
-    const list = document.getElementById("donorList");
-    list.innerHTML = "";
+        const list = document.getElementById("donorList");
+        list.innerHTML = "";
 
-    let o = 0, a = 0, b = 0;
+        let o = 0, a = 0, b = 0;
 
-    data.forEach(d => {
-        const li = document.createElement("li");
+        data.forEach(d => {
+            const li = document.createElement("li");
 
-        const name = d.name || "Unknown";
-        const blood = d.blood || "";
-        const location = d.location || "";
+            const name = d.name || "Unknown";
+            const blood = d.blood || "";
+            const location = d.location || "";
 
-        li.textContent = `${name}, ${blood}, ${location}`;
-        list.appendChild(li);
+            li.textContent = `${name}, ${blood}, ${location}`;
+            list.appendChild(li);
 
-        if (blood === "O+") o++;
-        if (blood === "A+") a++;
-        if (blood === "B+") b++;
-    });
+            if (blood === "O+") o++;
+            if (blood === "A+") a++;
+            if (blood === "B+") b++;
+        });
 
-    document.getElementById("oCount").innerText = o;
-    document.getElementById("aCount").innerText = a;
-    document.getElementById("bCount").innerText = b;
-    document.getElementById("totalCount").innerText = data.length;
+        document.getElementById("oCount").innerText = o;
+        document.getElementById("aCount").innerText = a;
+        document.getElementById("bCount").innerText = b;
+        document.getElementById("totalCount").innerText = data.length;
+
+    } catch (error) {
+        console.error("Error loading donors:", error);
+    }
 }
-
 
 // 🔥 Become donor
 async function becomeDonor() {
@@ -41,20 +48,25 @@ async function becomeDonor() {
         return;
     }
 
-    await fetch("http://127.0.0.1:8000/api/add-donor", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            name: String(name),
-            blood: String(blood),
-            location: String(location)   // ✅ FORCE STRING
-        })
-    });
+    try {
+        await fetch(`${BASE_URL}/api/add-donor`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name: String(name),
+                blood: String(blood),
+                location: String(location)
+            })
+        });
 
-    alert("You are now a donor!");
-    loadDonors();
+        alert("You are now a donor!");
+        loadDonors();
+
+    } catch (error) {
+        console.error("Error adding donor:", error);
+    }
 }
 
 // 🔥 Chat
@@ -70,17 +82,18 @@ async function sendMessage() {
     input.value = "";
 
     try {
-        const res = await fetch(`https://ai-blood-api.onrender.com/chat?query=${message}`);
+        const res = await fetch(`${BASE_URL}/chat?query=${encodeURIComponent(message)}`);
         const data = await res.json();
 
         chatBox.innerHTML += `<div><b>AI:</b><br>${data.results.join("<br>")}</div>`;
-    } catch {
+
+    } catch (error) {
+        console.error("Chat error:", error);
         chatBox.innerHTML += `<div><b>AI:</b> Server error</div>`;
     }
 
     chatBox.scrollTop = chatBox.scrollHeight;
 }
-
 
 // 🔥 Load on start
 loadDonors();
