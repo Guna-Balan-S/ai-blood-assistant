@@ -70,7 +70,7 @@ async function sendMessage() {
     input.value = "";
 
     try {
-        const res = await fetch(`http://127.0.0.1:8000/chat?query=${message}`);
+        const res = await fetch(`https://ai-blood-api.onrender.com/chat?query=${message}`);
         const data = await res.json();
 
         chatBox.innerHTML += `<div><b>AI:</b><br>${data.results.join("<br>")}</div>`;
