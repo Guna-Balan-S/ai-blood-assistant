@@ -1,45 +1,263 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>AI Blood Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>🩸 AI Blood Assistant</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: #f5f7fb;
+}
+
+/* 🔥 Header */
+.header {
+    background: linear-gradient(90deg, #ff4d4d, #ff0000);
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+/* Layout */
+.container {
+    display: flex;
+    height: calc(100vh - 60px);
+}
+
+/* Sidebar */
+.sidebar {
+    width: 280px;
+    background: white;
+    border-right: 1px solid #ddd;
+    padding: 15px;
+}
+
+/* Chat Area */
+.chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Chat messages */
+.chat-box {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+/* Messages */
+.message {
+    margin: 10px 0;
+    max-width: 70%;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.user {
+    background: #007bff;
+    color: white;
+    margin-left: auto;
+}
+
+.ai {
+    background: #e9ecef;
+}
+
+/* Input */
+.input-area {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+    background: white;
+}
+
+.input-area input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+.input-area button {
+    margin-left: 10px;
+    padding: 10px 15px;
+    background: #ff4d4d;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* Filters */
+.filter-box {
+    margin-bottom: 15px;
+}
+
+.filter-box select, .filter-box input {
+    width: 100%;
+    margin-top: 5px;
+    padding: 8px;
+}
+
+/* Donor list */
+.donor-list {
+    margin-top: 10px;
+}
+
+.donor-list li {
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+    }
+}
+</style>
 </head>
+
 <body>
 
-<h1>🩸 AI Blood Dashboard</h1>
+<div class="header">🩸 AI Blood Assistant Dashboard</div>
 
-<div class="stats">
-    <div class="card">O+ Donors: <span id="oCount">0</span></div>
-    <div class="card">A+ Donors: <span id="aCount">0</span></div>
-    <div class="card">B+ Donors: <span id="bCount">0</span></div>
-    <div class="card">Total: <span id="totalCount">0</span></div>
-</div>
+<div class="container">
 
-<div class="main">
+    <!-- 🔥 Sidebar -->
+    <div class="sidebar">
 
-    <!-- Chat -->
-    <div class="chat">
-        <h3>💬 AI Chat</h3>
+        <h3>🔍 Filters</h3>
 
-        <button onclick="becomeDonor()">🩸 Become Donor</button>
+        <div class="filter-box">
+            <label>Blood Group</label>
+            <select id="bloodFilter">
+                <option value="">All</option>
+                <option>O+</option>
+                <option>A+</option>
+                <option>B+</option>
+                <option>AB+</option>
+            </select>
+        </div>
 
-        <div id="chat-box"></div>
+        <div class="filter-box">
+            <label>Location</label>
+            <input id="locationFilter" placeholder="Enter city">
+        </div>
 
-        <div class="input-box">
-            <input type="text" id="user-input" placeholder="Ask for blood...">
+        <button onclick="filterDonors()">Search</button>
+        <button onclick="detectLocation()">📍 Auto Location</button>
+
+        <h3>🧾 Donors</h3>
+        <ul id="donorList" class="donor-list"></ul>
+
+    </div>
+
+    <!-- 🔥 Chat -->
+    <div class="chat-container">
+
+        <div id="chatBox" class="chat-box"></div>
+
+        <div class="input-area">
+            <input id="userInput" placeholder="Ask anything or search blood..." />
             <button onclick="sendMessage()">Send</button>
         </div>
-    </div>
 
-    <!-- Donor List -->
-    <div class="donors">
-        <h3>📋 Donors</h3>
-        <ul id="donorList"></ul> <!-- ✅ FIXED ID -->
     </div>
 
 </div>
 
-<script src="app.js"></script>
+<script>
+const BASE_URL = "https://ai-blood-assistant.onrender.com"; // 🔥 your backend
+
+// 🔥 Send message
+async function sendMessage() {
+    const input = document.getElementById("userInput");
+    const message = input.value.trim();
+
+    if (!message) return;
+
+    addMessage(message, "user");
+    input.value = "";
+
+    try {
+        const res = await fetch(`${BASE_URL}/chat?query=${encodeURIComponent(message)}`);
+        const data = await res.json();
+
+        if (data.results) {
+            addMessage(data.results.join("<br>"), "ai");
+        } else {
+            addMessage("🤖 AI: I understand general questions soon!", "ai");
+        }
+
+    } catch {
+        addMessage("⚠️ Server error", "ai");
+    }
+}
+
+// 🔥 Add message UI
+function addMessage(text, type) {
+    const chatBox = document.getElementById("chatBox");
+
+    const div = document.createElement("div");
+    div.className = `message ${type}`;
+    div.innerHTML = text;
+
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// 🔥 Filter donors
+async function filterDonors() {
+    const blood = document.getElementById("bloodFilter").value;
+    const location = document.getElementById("locationFilter").value;
+
+    const query = `${blood} ${location}`;
+
+    const res = await fetch(`${BASE_URL}/chat?query=${encodeURIComponent(query)}`);
+    const data = await res.json();
+
+    const list = document.getElementById("donorList");
+    list.innerHTML = "";
+
+    data.results.forEach(d => {
+        const li = document.createElement("li");
+        li.textContent = d;
+        list.appendChild(li);
+    });
+}
+
+// 🔥 Auto location
+function detectLocation() {
+    navigator.geolocation.getCurrentPosition(async pos => {
+
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+        const data = await res.json();
+
+        const city = data.address.city || data.address.town || data.address.village;
+
+        document.getElementById("locationFilter").value = city;
+
+    });
+}
+
+// 🔥 Load initial donors
+filterDonors();
+</script>
 
 </body>
 </html>

@@ -129,3 +129,44 @@ async function sendMessage() {
 if (localStorage.getItem("token")) {
     loadDonors();
 }
+
+
+
+async function filterDonors() {
+    const blood = document.getElementById("bloodFilter").value;
+    const location = document.getElementById("locationFilter").value;
+
+    const query = `${blood} ${location}`;
+
+    const res = await fetch(`${BASE_URL}/chat?query=${encodeURIComponent(query)}`);
+    const data = await res.json();
+
+    const list = document.getElementById("donorList");
+    list.innerHTML = "";
+
+    data.results.forEach(d => {
+        const li = document.createElement("li");
+        li.textContent = d;
+        list.appendChild(li);
+    });
+}
+
+
+function detectLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(async position => {
+
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            // 🔥 Convert lat/lon → city using API
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+            const data = await res.json();
+
+            const city = data.address.city || data.address.town || data.address.village;
+
+            document.getElementById("locationFilter").value = city;
+
+        });
+    }
+}
