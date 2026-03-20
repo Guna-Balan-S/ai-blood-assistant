@@ -1,29 +1,23 @@
 from fastapi import APIRouter
-from backend.database.db import donors
+from backend.database.database import SessionLocal
+from backend.db_models import DonorDB
 
 router = APIRouter()
 
 @router.get("/chat")
 def chat(query: str):
+    db = SessionLocal()
+
+    donors = db.query(DonorDB).all()
+
     results = []
-    
-    query_clean = query.strip().lower() 
+    query_clean = query.strip().lower()
 
     for d in donors:
-        name = str(d.get("name", "Unknown"))
+        if query_clean in d.blood.lower() or query_clean in d.location.lower():
+            results.append(f"{d.name}, {d.blood}, {d.location}")
 
-        blood = str(d.get("blood", "")).lower()
-
-        # ✅ FIX HERE
-        location_data = d.get("location", "")
-
-        if isinstance(location_data, dict):
-            location = str(location_data.get("city", "")).lower()
-        else:
-            location = str(location_data).lower()
-
-        if query_clean == blood or query_clean in location:
-            results.append(f"{name}, {blood.upper()}, {location.capitalize()}")
+    db.close()
 
     if not results:
         return {"results": ["No donors found"]}

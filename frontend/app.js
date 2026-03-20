@@ -1,6 +1,6 @@
 // 🔥 Load donors from backend
 async function loadDonors() {
-    const res = await fetch("http://127.0.0.1:8000/donors");
+    const res = await fetch("http://127.0.0.1:8000/api/donors");
     const data = await res.json();
 
     const list = document.getElementById("donorList");
@@ -8,7 +8,7 @@ async function loadDonors() {
 
     let o = 0, a = 0, b = 0;
 
-    data.donors.forEach(d => {
+    data.forEach(d => {
         const li = document.createElement("li");
 
         const name = d.name || "Unknown";
@@ -26,7 +26,7 @@ async function loadDonors() {
     document.getElementById("oCount").innerText = o;
     document.getElementById("aCount").innerText = a;
     document.getElementById("bCount").innerText = b;
-    document.getElementById("totalCount").innerText = data.donors.length;
+    document.getElementById("totalCount").innerText = data.length;
 }
 
 
@@ -41,7 +41,7 @@ async function becomeDonor() {
         return;
     }
 
-    await fetch("http://127.0.0.1:8000/add-donor", {
+    await fetch("http://127.0.0.1:8000/api/add-donor", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
