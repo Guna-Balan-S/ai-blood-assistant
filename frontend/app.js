@@ -1,10 +1,38 @@
-// 🌐 Backend URL (IMPORTANT)
 const BASE_URL = "https://ai-blood-assistant.onrender.com";
 
-// 🔥 Load donors from backend
+// 🔐 LOGIN
+async function login() {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    const res = await fetch(`${BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ username, password })
+    });
+
+    const data = await res.json();
+
+    if (data.access_token) {
+        localStorage.setItem("token", data.access_token);
+        alert("Login successful");
+        loadDonors();
+    } else {
+        alert("Login failed");
+    }
+}
+
+// 🔥 Load donors
 async function loadDonors() {
     try {
-        const res = await fetch(`${BASE_URL}/api/donors`);
+        const token = localStorage.getItem("token");
+
+        const res = await fetch(`${BASE_URL}/api/donors`, {
+            headers: {
+                "token": token
+            }
+        });
+
         const data = await res.json();
 
         const list = document.getElementById("donorList");
@@ -37,8 +65,10 @@ async function loadDonors() {
     }
 }
 
-// 🔥 Become donor
+// 🔥 Add donor
 async function becomeDonor() {
+    const token = localStorage.getItem("token");
+
     const name = prompt("Enter your name:");
     const blood = prompt("Enter blood group:");
     const location = prompt("Enter location:");
@@ -52,7 +82,8 @@ async function becomeDonor() {
         await fetch(`${BASE_URL}/api/add-donor`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "token": token
             },
             body: JSON.stringify({
                 name: String(name),
@@ -88,12 +119,13 @@ async function sendMessage() {
         chatBox.innerHTML += `<div><b>AI:</b><br>${data.results.join("<br>")}</div>`;
 
     } catch (error) {
-        console.error("Chat error:", error);
         chatBox.innerHTML += `<div><b>AI:</b> Server error</div>`;
     }
 
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// 🔥 Load on start
-loadDonors();
+// 🔥 Load on start (only if logged in)
+if (localStorage.getItem("token")) {
+    loadDonors();
+}
