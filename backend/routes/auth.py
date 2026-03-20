@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Header
 from sqlalchemy.orm import Session
 from backend.database.database import SessionLocal
-from backend.db_models import UserDB
 from jose import jwt
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
@@ -59,7 +58,7 @@ def register(data: dict, db: Session = Depends(get_db)):
 # 🚀 Login
 @router.post("/login")
 def login(data: dict, db: Session = Depends(get_db)):
-    user = db.query(UserDB).filter(UserDB.username == data["username"]).first()
+    user = filter(UserDB.username == data["username"]).first()
 
     if not user or not verify_password(data["password"], user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
